@@ -1,6 +1,6 @@
 mod gates;
 
-use gates::{and_gate, or_gate, not_gate, nand_gate};
+use gates::{and_gate, nand_gate, not_gate, or_gate};
 
 fn main() {
     println!("AND GATE: {}", and_gate(true, false));
