@@ -1,3 +1,4 @@
+mod alu;
 mod gates;
 
 use gates::{and_gate, nand_gate, not_gate, or_gate};
