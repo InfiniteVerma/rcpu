@@ -55,6 +55,10 @@ fn add_16(a: u16, b: u16) -> u16 {
     out
 }
 
+fn inc_16(a: u16) -> u16 {
+    add_16(a, 1)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -117,6 +121,23 @@ mod tests {
             let res = add_16(data.0, data.1);
             println!("res: {:x} exp: {:x}", res, exp_data);
             assert_eq!(res, exp_data);
+        }
+    }
+
+    #[test]
+    fn test_inc_16() {
+        let test_data = [
+            (0b0000000000000000, 0b0000000000000001),
+            (0b1111111111111111, 0b0000000000000000),
+            (0b0000000000000101, 0b0000000000000110),
+            (0b1111111111111011, 0b1111111111111100),
+        ];
+
+        for data in test_data {
+            let exp = data.1;
+
+            let res = inc_16(data.0);
+            assert_eq!(res, exp);
         }
     }
 }
