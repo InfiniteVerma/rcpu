@@ -2,6 +2,7 @@ mod alu;
 mod gates;
 mod mem;
 mod sequential;
+mod utils;
 
 use sequential::{Clock, DFF};
 
