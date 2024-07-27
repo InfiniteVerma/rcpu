@@ -1,4 +1,5 @@
 use core::panic;
+use std::env;
 use std::thread;
 use std::time::Duration;
 
@@ -28,7 +29,14 @@ impl Clock {
             } else {
                 println!("Tock");
             }
-            thread::sleep(Duration::from_secs(1));
+
+            let skip_sleep = env::var("SKIP_CLOCK_SLEEP").unwrap_or_else(|_| "false".to_string());
+            let sleep_duration = if skip_sleep == "true" {
+                Duration::from_secs(3)
+            } else {
+                Duration::from_secs(0)
+            };
+            thread::sleep(sleep_duration);
 
             i = !i;
         }
@@ -41,7 +49,14 @@ impl Clock {
         } else {
             println!("Tock");
         }
-        thread::sleep(Duration::from_secs(1));
+
+        let skip_sleep = env::var("SKIP_CLOCK_SLEEP").unwrap_or_else(|_| "false".to_string());
+        let sleep_duration = if skip_sleep == "true" {
+            Duration::from_secs(1)
+        } else {
+            Duration::from_secs(0)
+        };
+        thread::sleep(sleep_duration);
 
         for component in &mut self.components {
             component.tick();
@@ -299,105 +314,105 @@ mod tests {
 
     use super::*;
 
-    //#[test]
-    //fn test_dff() {
-    //    let mut clock = Clock::new();
+    #[test]
+    fn test_dff() {
+        let mut clock = Clock::new();
 
-    //    let dff1 = DFF::new();
+        let dff1 = DFF::new();
 
-    //    clock.register(Box::new(dff1));
-    //    clock.set_state_of_component(0, vec![true]);
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 1);
-    //    assert_eq!(out[0], false);
+        clock.register(Box::new(dff1));
+        clock.set_state_of_component(0, vec![true]);
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], false);
 
-    //    clock.tick();
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 1);
-    //    assert_eq!(out[0], true);
+        clock.tick();
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], true);
 
-    //    clock.set_state_of_component(0, vec![false]);
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 1);
-    //    assert_eq!(out[0], true);
+        clock.set_state_of_component(0, vec![false]);
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], true);
 
-    //    clock.tick();
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 1);
-    //    assert_eq!(out[0], false);
-    //}
+        clock.tick();
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], false);
+    }
 
-    //#[test]
-    //fn test_bit() {
-    //    let mut clock = Clock::new();
+    #[test]
+    fn test_bit() {
+        let mut clock = Clock::new();
 
-    //    let bit1 = Bit::new();
+        let bit1 = Bit::new();
 
-    //    clock.register(Box::new(bit1));
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 1);
-    //    assert_eq!(out[0], false);
+        clock.register(Box::new(bit1));
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], false);
 
-    //    clock.set_state_of_component(0, vec![false, false]);
+        clock.set_state_of_component(0, vec![false, false]);
 
-    //    clock.tick();
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 1);
-    //    assert_eq!(out[0], false);
+        clock.tick();
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], false);
 
-    //    clock.set_state_of_component(0, vec![true, false]);
+        clock.set_state_of_component(0, vec![true, false]);
 
-    //    clock.tick();
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 1);
-    //    assert_eq!(out[0], false);
+        clock.tick();
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], false);
 
-    //    clock.set_state_of_component(0, vec![true, true]);
+        clock.set_state_of_component(0, vec![true, true]);
 
-    //    clock.tick();
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 1);
-    //    assert_eq!(out[0], true);
+        clock.tick();
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], true);
 
-    //    clock.set_state_of_component(0, vec![false, false]);
+        clock.set_state_of_component(0, vec![false, false]);
 
-    //    clock.tick();
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 1);
-    //    assert_eq!(out[0], true);
-    //}
+        clock.tick();
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], true);
+    }
 
-    //#[test]
-    //fn test_register() {
-    //    let mut clock = Clock::new();
+    #[test]
+    fn test_register() {
+        let mut clock = Clock::new();
 
-    //    let reg1 = Register::new();
+        let reg1 = Register::new();
 
-    //    clock.register(Box::new(reg1));
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 16);
-    //    assert_eq!(out, [false; 16]);
+        clock.register(Box::new(reg1));
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 16);
+        assert_eq!(out, [false; 16]);
 
-    //    let inp_bool: u16 = 0b1000000010000000;
-    //    let mut inp = u16_to_vec_bool(inp_bool);
-    //    inp.extend([true]);
-    //    clock.set_state_of_component(0, inp);
-    //    clock.tick();
+        let inp_bool: u16 = 0b1000000010000000;
+        let mut inp = u16_to_vec_bool(inp_bool);
+        inp.extend([true]);
+        clock.set_state_of_component(0, inp);
+        clock.tick();
 
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 16);
-    //    assert_eq!(vec_bool_to_u16(out), inp_bool);
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 16);
+        assert_eq!(vec_bool_to_u16(out), inp_bool);
 
-    //    let inp_bool2: u16 = 0b1000000010000001;
-    //    let mut inp2 = u16_to_vec_bool(inp_bool2);
-    //    inp2.extend([false]);
-    //    clock.set_state_of_component(0, inp2);
-    //    clock.tick();
+        let inp_bool2: u16 = 0b1000000010000001;
+        let mut inp2 = u16_to_vec_bool(inp_bool2);
+        inp2.extend([false]);
+        clock.set_state_of_component(0, inp2);
+        clock.tick();
 
-    //    let out = clock.get_state_of_component(0);
-    //    assert_eq!(out.len(), 16);
-    //    assert_eq!(vec_bool_to_u16(out), inp_bool);
-    //}
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 16);
+        assert_eq!(vec_bool_to_u16(out), inp_bool);
+    }
 
     #[test]
     fn test_ram8() {
