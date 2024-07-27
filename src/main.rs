@@ -11,7 +11,7 @@ fn main() {
     let dff1 = DFF::new();
 
     clock.register(Box::new(dff1));
-    clock.set_state_of_component(0, true);
+    clock.set_state_of_component(0, vec![true]);
     println!("State: {:#?}", clock.get_state_of_component(0));
 
     //clock.start_clock();
@@ -19,7 +19,7 @@ fn main() {
     println!("State: {:#?}", clock.get_state_of_component(0));
     clock.tick();
     println!("State: {:#?}", clock.get_state_of_component(0));
-    clock.set_state_of_component(0, false);
+    clock.set_state_of_component(0, vec![false]);
     clock.tick();
     println!("State: {:#?}", clock.get_state_of_component(0));
     clock.tick();
