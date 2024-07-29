@@ -285,7 +285,7 @@ impl Tick for RAM8 {
         self.addr = vec_bool_to_u8(addr.clone());
 
         println!(
-            "ANANT load: {}, addr: {:#?}, self.addr: {:#?}",
+            "RAM8 -  load: {}, addr: {:#?}, self.addr: {:#?}",
             load, addr, self.addr
         );
 
@@ -304,6 +304,88 @@ impl Tick for RAM8 {
             let mut input = inp_bool.clone();
             input.extend([dmux_out[i]]);
             self.registers[i].set_state(input);
+        }
+    }
+}
+
+/**
+ * Memory of sixty four 16-bit registers.
+ * If load is asserted, the value of the register selected by
+ * address is set to in; Otherwise, the value does not change.
+ * The value of the selected register is emitted by out.
+ */
+struct RAM64 {
+    ram8s: [RAM8; 8],
+    addr: u8, // 6 bit size
+}
+
+impl RAM64 {
+    pub fn new() -> Self {
+        let ram8s = [(); 8].map(|_| RAM8::new());
+        RAM64 { ram8s, addr: 0 }
+    }
+}
+
+impl Tick for RAM64 {
+    fn tick(&mut self) {
+        for i in 0..8 {
+            self.ram8s[i].tick();
+        }
+    }
+
+    fn get_state(&self) -> Vec<bool> {
+        println!("RAM64 get_state: self.addr: {}", self.addr);
+        let res = mux8way16_gate(
+            vec_bool_to_u16(self.ram8s[0].get_state()),
+            vec_bool_to_u16(self.ram8s[1].get_state()),
+            vec_bool_to_u16(self.ram8s[2].get_state()),
+            vec_bool_to_u16(self.ram8s[3].get_state()),
+            vec_bool_to_u16(self.ram8s[4].get_state()),
+            vec_bool_to_u16(self.ram8s[5].get_state()),
+            vec_bool_to_u16(self.ram8s[6].get_state()),
+            vec_bool_to_u16(self.ram8s[7].get_state()),
+            self.addr,
+        );
+
+        u16_to_vec_bool(res)
+    }
+
+    fn set_state(&mut self, inputs: Vec<bool>) {
+        // 16 + 1 + 6
+        assert_eq!(inputs.len(), 16 + 1 + 6);
+
+        let load = inputs[16];
+        let mut addr: Vec<bool> = vec![false; 6];
+
+        for i in 0..6 {
+            addr[i] = inputs[i + 17];
+        }
+
+        self.addr = vec_bool_to_u8(addr[0..3].to_vec());
+
+        println!(
+            "RAM64 -  load: {}, addr: {:#?}, self.addr: {:#?}",
+            load, addr, self.addr
+        );
+
+        let dmux_out: Vec<bool> =
+            u8_to_vec_bool(dmux8way_gate(load, vec_bool_to_u8(addr[3..6].to_vec())));
+
+        /*
+         * Input is vector of bool. Here converting to u32
+         *  - Then right shift 7 and take the 16 LSB bits as input data
+         */
+        let input_bit: u32 = vec_bool_to_u32(inputs.clone()) >> 7;
+        let inp_bool: Vec<bool> = u16_to_vec_bool((input_bit & 0xFFFF) as u16);
+
+        assert_eq!(inp_bool.len(), 16);
+
+        for i in 0..8 {
+            let mut input = inp_bool.clone();
+            input.extend([dmux_out[i]]);
+            input.extend(&addr[0..3]);
+            println!("RAM64 - For i: {}, setting input: {:#?}", i, input);
+            self.ram8s[i].set_state(input);
         }
     }
 }
@@ -474,5 +556,65 @@ mod tests {
         let out = clock.get_state_of_component(0);
         assert_eq!(out.len(), 16);
         assert_eq!(vec_bool_to_u16(out), 0);
+    }
+
+    #[test]
+    fn test_ram64() {
+        let mut clock = Clock::new();
+
+        let ram64 = RAM64::new();
+
+        /*
+         * Test 1: Test default value
+         */
+        clock.register(Box::new(ram64));
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 16);
+        assert_eq!(vec_bool_to_u16(out), 0);
+
+        /*
+         * Test 1: Set and get register at addr 010
+         */
+        let input: u32 = 1;
+        let load = 1;
+        let addr = 0;
+        let mut final_input: u32 = input;
+        final_input = (final_input << 1) | load;
+        final_input = (final_input << 6) | addr;
+
+        let inp = u32_to_vec_bool(final_input)[9..].to_vec();
+        clock.set_state_of_component(0, inp);
+        clock.tick();
+
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 16);
+        assert_eq!(vec_bool_to_u16(out), (input & 0xFFFF) as u16);
+
+        /*
+         * Test 2: Set and get register at addr 010
+         */
+        let input_1: u32 = 0b1000000011111111;
+        let load_1 = 1;
+        let addr_1 = 0b101101;
+        let mut final_input_1: u32 = input_1;
+        final_input_1 = (final_input_1 << 1) | load_1;
+        final_input_1 = (final_input_1 << 6) | addr_1;
+
+        let inp = u32_to_vec_bool(final_input_1)[9..].to_vec();
+        clock.set_state_of_component(0, inp);
+        clock.tick();
+
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 16);
+        assert_eq!(vec_bool_to_u16(out), (input_1 & 0xFFFF) as u16);
+
+        /*
+         * Test 3: Set at 010 and get register at addr 011
+         */
+        clock.tick();
+
+        let out = clock.get_state_of_component(0);
+        assert_eq!(out.len(), 16);
+        assert_eq!(vec_bool_to_u16(out), (input_1 & 0xFFFF) as u16);
     }
 }
