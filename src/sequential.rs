@@ -616,5 +616,31 @@ mod tests {
         let out = clock.get_state_of_component(0);
         assert_eq!(out.len(), 16);
         assert_eq!(vec_bool_to_u16(out), (input_1 & 0xFFFF) as u16);
+
+        /*
+         * Test 4
+         */
+//        | 4   |   1313 |  1 |   13  |   1313 |
+
+        //let input_4: u32 = 0b10100100001;
+        //let load_4 = 1;
+        //let addr_4 = 0b001101;
+        //let mut final_input_4: u32 = input_4;
+        //final_input_4 = (final_input_4 << 1) | load_4;
+        //final_input_4 = (final_input_4 << 6) | addr_4;
+
+        //let inp = u32_to_vec_bool(final_input_4)[9..].to_vec();
+        //println!("ANANT Final input: {:#?}", inp);
+        //clock.set_state_of_component(0, inp);
+        //clock.tick();
+
+        //let out = clock.get_state_of_component(0);
+        //assert_eq!(out.len(), 16);
+        //assert_eq!(vec_bool_to_u16(out), (input_4 & 0xFFFF) as u16);
+
+        // now just run the original test suite
+        // TODO open file
+        // TODO parse file
+        // TODO run tests
     }
 }
